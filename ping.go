@@ -125,3 +125,64 @@ func findReplyIPv4(connection net.PacketConn, target *Target, i int, testDeadlin
 		}
 	}
 }
+
+// PingIPv4 send ICMP ECHO_REQUESTs to target host
+func (target *Target) PingIPv4(testDeadline time.Time) (*PingResult, error) {
+	var (
+		err error
+		wb  []byte
+	)
+	result := &PingResult{TargetID: target.ID, IP: target.IP.String()}
+
+	for i := 1; i <= target.Options.Count; i++ {
+		var connection net.PacketConn
+		connection, err = newConnectionIPv4(target.Options.Timeout)
+		if err != nil {
+			break
+		}
+		defer connection.Close()
+
+		wm := prepareICMPMessage(target, &i)
+		wb, err = wm.Marshal(nil) //Marshalling
+		if err != nil {
+			break
+		}
+		start := time.Now()
+		if _, err := connection.WriteTo(wb, &net.IPAddr{IP: target.IP}); err != nil {
+			result.Rtts = append(result.Rtts, Rtt{Err: err})
+			// Possible errors:
+			// - "network is unreachable"
+			LogLevel.Fail.Printf("WriteTo error, %s", err)
+			continue
+		}
+		result.Transmitted++ // increment counter
+		receivedMessage, peer, err := findReplyIPv4(connection, target, i, testDeadline)
+		if err != nil {
+			result.Rtts = append(result.Rtts, Rtt{Err: err})
+			if err.Error() == "Deadline reached. Not enough time to run this test." {
+				result.Transmitted--
+			}
+			continue
+		}
+
+		elapsedTime := time.Now().Sub(start)
+		connection.Close()
+		LogLevel.Message.Printf("Find Message type:%v, code:%v, body:%v", receivedMessage.Type, receivedMessage.Code, receivedMessage.Body)
+		switch receivedMessage.Type {
+		case ipv4.ICMPTypeEchoReply:
+			result.Received++
+			result.Rtts = append(result.Rtts, Rtt{ReplyTime: elapsedTime})
+		case ipv4.ICMPTypeDestinationUnreachable:
+			result.Rtts = append(result.Rtts, Rtt{Err: errors.New(peer.String() + " : Destination Unreachable : " + IPv4DestinationUnreachableCode[receivedMessage.Code])})
+		case ipv4.ICMPTypeTimeExceeded:
+			result.Rtts = append(result.Rtts, Rtt{Err: errors.New(peer.String() + " : Time-to-live exceeded : " + IPv4TimeExceededCode[receivedMessage.Code])})
+		case ipv4.ICMPTypeParameterProblem:
+			result.Rtts = append(result.Rtts, Rtt{Err: errors.New(peer.String() + " : Parameter Problem")})
+		default:
+			result.Rtts = append(result.Rtts, Rtt{Err: errors.New(peer.String() + " : Unknown ICMP Type")})
+			LogLevel.Message.Printf("Unknown ICMP Type %+v", receivedMessage)
+		}
+		time.Sleep(target.Options.Interval - elapsedTime)
+	}
+	return result, err
+}
