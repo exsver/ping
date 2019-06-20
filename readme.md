@@ -1,4 +1,12 @@
+### Warning
+
 !!! is not ready yet !!!
+
+!!! icmp ping requires root privileges !!!
+
+### Examples
+See examples in following directories:
+ - ./Examples
 
 ### Linters
 #### Linter installation:
