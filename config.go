@@ -19,7 +19,7 @@ type Config struct {
 	TargetMinPingTimeout     time.Duration
 	TargetMaxPingTimeout     time.Duration
 	// Specifies the maximum number of data bytes in echo requests.
-	// For interfaces with mtu 1500 (IPv4) set targetMaxPingDataLenth = 1458
+	// For interfaces with mtu 1500 (IPv4) set TargetMaxPingDataLenth = 1458
 	TargetMaxPingDataLenth int
 	TargetDefaultPingData  []byte
 }

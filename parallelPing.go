@@ -23,7 +23,7 @@ func ParallelPing(targets []Target, resultChan chan PingResult, testDeadline tim
 
 func worker(wg *sync.WaitGroup, taskChan chan Target, resultChan chan PingResult, testDeadline time.Time) {
 	for pinger := range taskChan {
-		var pr, _ = pinger.PingIPv4(testDeadline)
+		var pr, _ = pinger.Ping(testDeadline)
 		resultChan <- *pr
 	}
 	wg.Done()

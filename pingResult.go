@@ -33,7 +33,6 @@ func (pingResult *PingResult) RttString() string {
 }
 
 func (pingResult *PingResult) RttsString() string {
-
 	result := ""
 	for i, value := range pingResult.Rtts {
 		if value.Err == nil {
@@ -87,11 +86,10 @@ func (pingResult *PingResult) CalculateRTT() (min time.Duration, average time.Du
 		// standardDeviation = sqrt((stotal/received - average * average)*(received/(received-1))    , если n>30
 		standardDeviation = time.Duration(math.Sqrt(stotal/float64(received) - float64(average*average)))
 		return
-	} else {
-		min = 0
-		max = 0
-		average = 0
-		standardDeviation = 0
-		return
 	}
+	min = 0
+	max = 0
+	average = 0
+	standardDeviation = 0
+	return
 }
