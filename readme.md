@@ -1,24 +1,100 @@
-### Warning
+## Warning
 
 !!! is not ready yet !!!
 
 !!! icmp ping requires root privileges !!!
 
-### Examples
-See examples in following directories:
- - ./Examples
+## Examples
+### Example 1.1-IsReachable
+```go
+package main
 
-### Linters
-#### Linter installation:
-```sh
-curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin v1.15.0
-go get -u github.com/Quasilyte/go-consistent
-go get -u github.com/mgechev/revive
+import (
+	"log"
+	"time"
+
+	"github.com/exsver/ping"
+)
+
+func main() {
+	target, err := ping.NewTargetFromString("8.8.8.8") // Create New target
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := target.IsReachableIPv4(time.Now().Add(time.Minute)) // Run test
+	if err == nil {
+		println(result) // Print result. IsReachable return true if target is reachable, or false if not.
+	} else {
+		println(err.Error()) // or error
+	}
+}
 ```
 
-#### Run linters:
-```sh
-golangci-lint run
-go-consistent -pedantic -v ./...
-revive -config revive.toml -formatter friendly ./...
+### Example 2.1-Ping
+```go
+package main
+
+import (
+	"log"
+	"time"
+
+	"github.com/exsver/ping"
+)
+
+func main() {
+	target, err := ping.NewTargetFromString("8.8.8.8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	target.Options.Count = 4                                    // Configure ping to send 4 ICMP ECHO_REQUESTs
+	target.Options.Interval = time.Second * 1                   // with interval in 1 second
+	pingResult, err := target.Ping(time.Now().Add(time.Minute)) // Run test
+	if err == nil {
+		println(pingResult.String())     // Print results
+		println(pingResult.RttString())  // Print results
+		println(pingResult.RttsString()) // Print results
+	} else {
+		println(err.Error())
+	}
+}
+```
+
+### Example 3-ParallelPing
+```go
+package main
+
+import (
+	"time"
+
+	"github.com/exsver/ping"
+)
+
+func main() {
+	// Configure Targets
+	target1, _ := ping.NewTargetFromString("8.8.8.8")
+	target1.Options.Interval = time.Second * 1
+	target1.Options.Count = 4
+	// Id in range 0-65535 (2^16-1)
+	target1.ID = 1
+
+	target2, _ := ping.NewTargetFromString("8.8.4.4")
+	target2.Options.Interval = time.Second * 1
+	target2.Options.Count = 4
+	target2.ID = 2
+
+	// Create slice of Targets
+	var targets []ping.Target
+	// Add Targets to slice
+	targets = append(targets, *target1, *target2)
+	// Create chan for results
+	resultChan := make(chan ping.PingResult, len(targets))
+	// Run test
+	go ping.ParallelPing(targets, resultChan, time.Now().Add(time.Minute), len(targets))
+	// Read and print results
+	for pr := range resultChan {
+		println(pr.String(), pr.RttsString())
+	}
+}
 ```

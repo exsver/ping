@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"net"
 	"time"
+
+	"golang.org/x/net/icmp"
+	"golang.org/x/net/ipv4"
+	"golang.org/x/net/ipv6"
 )
 
 // Target struct represents configuration options for ping host
@@ -56,4 +60,28 @@ func NewTargetFromString(ipString string) (*Target, error) {
 // Use for debug purpose.
 func (target *Target) String() string {
 	return fmt.Sprintf("ip: %s, count: %v, interval: %s, timeout: %s", target.IP, target.Options.Count, target.Options.Interval, target.Options.Timeout)
+}
+
+func (target *Target) GenICMPMessage(i int) *icmp.Message {
+	if target.IP.To4() != nil {
+		return &icmp.Message{ // Create ICMP message
+			Type: ipv4.ICMPTypeEcho,
+			Code: 0,
+			Body: &icmp.Echo{
+				ID:   target.ID,
+				Seq:  i,
+				Data: target.Options.Data,
+			},
+		}
+	}
+
+	return &icmp.Message{ // Create ICMP message
+		Type: ipv6.ICMPTypeEchoRequest,
+		Code: 0,
+		Body: &icmp.Echo{
+			ID:   target.ID,
+			Seq:  i,
+			Data: target.Options.Data,
+		},
+	}
 }

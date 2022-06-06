@@ -47,30 +47,6 @@ func newConnectionIPv6(timeout time.Duration) (net.PacketConn, error) {
 	return connection, nil
 }
 
-func prepareICMPMessage(target *Target, i *int) *icmp.Message {
-	if target.IP.To4() != nil {
-		return &icmp.Message{ // Create ICMP message
-			Type: ipv4.ICMPTypeEcho,
-			Code: 0,
-			Body: &icmp.Echo{
-				ID:   target.ID,
-				Seq:  *i,
-				Data: target.Options.Data,
-			},
-		}
-	}
-
-	return &icmp.Message{ // Create ICMP message
-		Type: ipv6.ICMPTypeEchoRequest,
-		Code: 0,
-		Body: &icmp.Echo{
-			ID:   target.ID,
-			Seq:  *i,
-			Data: target.Options.Data,
-		},
-	}
-}
-
 func isDeadlineReached(deadline time.Time) bool {
 	return deadline != *NoDeadline && time.Now().After(deadline)
 }
@@ -248,11 +224,12 @@ func (target *Target) PingIPv4(testDeadline time.Time) (*PingResult, error) {
 		}
 		defer connection.Close()
 
-		wm := prepareICMPMessage(target, &i)
+		wm := target.GenICMPMessage(i)
 		wb, err = wm.Marshal(nil) // Marshalling
 		if err != nil {
 			break
 		}
+
 		start := time.Now()
 		if _, err := connection.WriteTo(wb, &net.IPAddr{IP: target.IP}); err != nil {
 			result.Rtts = append(result.Rtts, Rtt{Err: err})
@@ -261,6 +238,7 @@ func (target *Target) PingIPv4(testDeadline time.Time) (*PingResult, error) {
 			LogLevel.Fail.Printf("WriteTo error, %s", err)
 			continue
 		}
+
 		result.Transmitted++ // increment counter
 		receivedMessage, peer, err := findReplyIPv4(connection, target, i, testDeadline)
 		if err != nil {
@@ -310,7 +288,7 @@ func (target *Target) PingIPv6(testDeadline time.Time) (*PingResult, error) {
 		}
 		defer connection.Close()
 
-		wm := prepareICMPMessage(target, &i)
+		wm := target.GenICMPMessage(i)
 		wb, err = wm.Marshal(nil) //Marshalling
 		if err != nil {
 			break
@@ -325,6 +303,7 @@ func (target *Target) PingIPv6(testDeadline time.Time) (*PingResult, error) {
 			LogLevel.Fail.Printf("WriteTo error, %s", err)
 			continue
 		}
+
 		result.Transmitted++
 		receivedMessage, peer, err := findReplyIPv6(connection, target, i, testDeadline)
 		if err != nil {
