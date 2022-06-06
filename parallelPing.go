@@ -26,5 +26,6 @@ func worker(wg *sync.WaitGroup, taskChan chan Target, resultChan chan PingResult
 		var pr, _ = pinger.Ping(testDeadline)
 		resultChan <- *pr
 	}
+
 	wg.Done()
 }

@@ -21,6 +21,7 @@ func (target *Target) IsReachableIPv4(testDeadline time.Time) (bool, error) {
 			LogLevel.Fail.Printf("Marshaling error, %s", err)
 			return false, err
 		}
+
 		_, err = connection.WriteTo(wb, &net.IPAddr{IP: target.IP}) // Write to connection
 		if err != nil {
 			return false, err
@@ -30,6 +31,7 @@ func (target *Target) IsReachableIPv4(testDeadline time.Time) (bool, error) {
 		if receivedMessage != nil {
 			LogLevel.Message.Printf("type:%v code:%v body:%v", receivedMessage.Type, receivedMessage.Code, receivedMessage.Body)
 		}
+
 		if err == nil {
 			switch receivedMessage.Type {
 			case ipv4.ICMPTypeEchoReply:

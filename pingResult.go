@@ -29,6 +29,7 @@ func (pingResult *PingResult) String() string {
 
 func (pingResult *PingResult) RttString() string {
 	min, ave, max, standardDeviation := pingResult.CalculateRTT()
+
 	return fmt.Sprintf("min: %v average: %v max: %v stddev: %v", min, ave, max, standardDeviation)
 }
 
@@ -41,6 +42,7 @@ func (pingResult *PingResult) RttsString() string {
 			result = fmt.Sprintf("%s [%v] %v", result, i+1, value.Err)
 		}
 	}
+
 	return strings.TrimSpace(result)
 }
 
@@ -52,6 +54,7 @@ func (pingResult *PingResult) CalculateRTT() (min time.Duration, average time.Du
 	if len(pingResult.Rtts) == 0 {
 		return
 	}
+
 	var total float64  //the sum of rtt
 	var stotal float64 //the sum of the squares of the rtt
 	received := len(pingResult.Rtts)
@@ -72,6 +75,7 @@ func (pingResult *PingResult) CalculateRTT() (min time.Duration, average time.Du
 			received--
 		}
 	}
+
 	if received > 0 {
 		average = time.Duration(int(total) / received)
 		// Пошагово вычисление стандартного отклонения (Standard deviation):
@@ -87,6 +91,7 @@ func (pingResult *PingResult) CalculateRTT() (min time.Duration, average time.Du
 		standardDeviation = time.Duration(math.Sqrt(stotal/float64(received) - float64(average*average)))
 		return
 	}
+
 	min = 0
 	max = 0
 	average = 0

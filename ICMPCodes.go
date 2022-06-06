@@ -1,9 +1,9 @@
 package ping
 
 var IPv4DestinationUnreachableCode = map[int]string{
-	//0-5 RFC-792
-	//6-12 RFC-1122
-	//13-15 RFC-1812
+	// 0-5 RFC-792
+	// 6-12 RFC-1122
+	// 13-15 RFC-1812
 	0:        "net unreachable",
 	1:        "host unreachable",
 	2:        "protocol unreachable",
@@ -30,7 +30,7 @@ var IPv4TimeExceededCode = map[int]string{
 }
 
 var IPv6DestinationUnreachableCode = map[int]string{
-	//0-6 RFC-4443
+	// 0-6 RFC-4443
 	0:       "no route to destination",
 	1:       "communication with destination administratively prohibited",
 	2:       "beyond scope of source address",
@@ -42,15 +42,15 @@ var IPv6DestinationUnreachableCode = map[int]string{
 }
 
 var IPv6TimeExceededCode = map[int]string{
-	//0-1 RFC-4443
+	// 0-1 RFC-4443
 	0:       "hop limit exceeded in transit",
 	1:       "fragment reassembly time exceeded",
 	2 - 255: "unknown code", // 8 bits in ICMPv6 Header
 }
 
 var IPv6ParameterProblemCode = map[int]string{
-	//0-2 RFC-4443
-	//3 RFC-7112
+	// 0-2 RFC-4443
+	// 3 RFC-7112
 	0:       "erroneous header field encountered",
 	1:       "unrecognized Next Header type encountered",
 	2:       "unrecognized IPv6 option encountered",

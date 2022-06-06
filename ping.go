@@ -14,7 +14,6 @@ import (
 )
 
 func newConnectionIPv4(timeout time.Duration) (net.PacketConn, error) {
-	var connection net.PacketConn
 	connection, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
 	if err != nil {
 		// Possible errors:
@@ -22,10 +21,12 @@ func newConnectionIPv4(timeout time.Duration) (net.PacketConn, error) {
 		// "listen ip4:icmp 0.0.0.0: socket: operation not permitted"   -  need root privilege
 		return nil, fmt.Errorf("listen error, %s", err)
 	}
+
 	err = connection.SetDeadline(time.Now().Add(timeout))
 	if err != nil {
 		return nil, fmt.Errorf("setDeadline error, %s", err)
 	}
+
 	return connection, nil
 }
 
@@ -37,16 +38,18 @@ func newConnectionIPv6(timeout time.Duration) (net.PacketConn, error) {
 		// "listen ip6:ipv6-icmp :bind: The requested address is not valid in its context"
 		return nil, fmt.Errorf("listen error, %s", err)
 	}
+
 	err = connection.SetDeadline(time.Now().Add(timeout))
 	if err != nil {
 		return nil, fmt.Errorf("setDeadline error, %s", err)
 	}
+
 	return connection, nil
 }
 
 func prepareICMPMessage(target *Target, i *int) *icmp.Message {
 	if target.IP.To4() != nil {
-		return &icmp.Message{ //Create ICMP message
+		return &icmp.Message{ // Create ICMP message
 			Type: ipv4.ICMPTypeEcho,
 			Code: 0,
 			Body: &icmp.Echo{
@@ -56,7 +59,8 @@ func prepareICMPMessage(target *Target, i *int) *icmp.Message {
 			},
 		}
 	}
-	return &icmp.Message{ //Create ICMP message
+
+	return &icmp.Message{ // Create ICMP message
 		Type: ipv6.ICMPTypeEchoRequest,
 		Code: 0,
 		Body: &icmp.Echo{
@@ -224,6 +228,7 @@ func (target *Target) Ping(testDeadline time.Time) (*PingResult, error) {
 			return target.PingIPv6(testDeadline)
 		}
 	}
+
 	return nil, errors.New("unknown IP protocol")
 }
 
@@ -244,7 +249,7 @@ func (target *Target) PingIPv4(testDeadline time.Time) (*PingResult, error) {
 		defer connection.Close()
 
 		wm := prepareICMPMessage(target, &i)
-		wb, err = wm.Marshal(nil) //Marshalling
+		wb, err = wm.Marshal(nil) // Marshalling
 		if err != nil {
 			break
 		}
@@ -285,6 +290,7 @@ func (target *Target) PingIPv4(testDeadline time.Time) (*PingResult, error) {
 		}
 		time.Sleep(target.Options.Interval - elapsedTime)
 	}
+
 	return result, err
 }
 
@@ -348,5 +354,6 @@ func (target *Target) PingIPv6(testDeadline time.Time) (*PingResult, error) {
 		}
 		time.Sleep(target.Options.Interval - elapsed)
 	}
+
 	return result, err
 }

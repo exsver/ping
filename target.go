@@ -40,6 +40,7 @@ func NewTargetFromString(ipString string) (*Target, error) {
 	if parsedIP == nil {
 		return nil, fmt.Errorf("create NewTargetFromString Error. Can't Parse IP from string: <%s>", ipString)
 	}
+
 	return NewTarget(
 		parsedIP,
 		TargetOptions{
