@@ -15,7 +15,7 @@ func (target *Target) IsReachableIPv4(testDeadline time.Time) (bool, error) {
 		}
 		defer connection.Close()
 
-		wm := prepareICMPMessage(target, &i)
+		wm := target.GenICMPMessage(i)
 		wb, err := wm.Marshal(nil) //Marshalling
 		if err != nil {
 			LogLevel.Fail.Printf("Marshaling error, %s", err)
